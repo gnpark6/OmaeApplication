@@ -1,0 +1,64 @@
+{% if counter_start %}
+<script language="JavaScript">
+    var SetTime = null;
+
+    function msg_time(duration_sec) {   // 1초씩 카운트
+
+        if (SetTime == null) {
+            SetTime = duration_sec;
+        }
+        
+        var msg = "- " + SetTime + "초 남음";
+        
+        // document.all.ViewTimer.innerHTML = msg; // div 영역에 보여줌
+        const viewer = document.getElementById('id_ViewTimer');
+        viewer.innerHTML = msg;
+                
+        if (SetTime <= 0) {
+            clearInterval(tid);     // 타이머 해제
+            alert("시간이 만료되었습니다.");
+        }
+        else {
+            SetTime--;
+        }
+    }
+
+    window.onload = function TimerStart(){ tid=setInterval('msg_time({{duration_sec}})', 1000) };
+
+</script>
+
+핸드폰으로 전송된 인증코드를 입력해 주세요.
+<div id="id_ViewTimer"></div>
+{% else %}
+신청서를 작성하시겠습니까? <br/>
+- 입력하신 대표자 전화번호로 인증코드를 전송합니다.<br/>
+- 이미 신청하신 경우 로그인페이지로 이동합니다.
+{% endif %}
+
+{% for message in messages %}
+<div>{{ message }}</div>
+{% endfor %}
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li>
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <b>ERROR: {{ message }}</b>
+        {% else %}
+            {{message}}
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<div>
+    <form action="{{form_action}}" method="post">
+        {% csrf_token %}
+        <table>
+        {{ form.as_table }}
+        </table>
+        <input type="submit" value="Submit">
+    </form>
+</div>
