@@ -43,13 +43,13 @@ class StartApplicationForm(forms.Form):
                             widget=forms.TextInput(attrs={'oninput': NUMBER_ONLY}),
                             validators=[validate_mobile_phone])
 
-    def clean_registration_no(self):
-        reg_no = self.cleaned_data.get("registration_no")
-        if validate_buzno(reg_no) != True:
-            raise ValidationError('올바르지 않은 사업자등록번호입니다.')
+    # def clean_registration_no(self):
+    #     reg_no = self.cleaned_data.get("registration_no")
+    #     if validate_buzno(reg_no) != True:
+    #         raise ValidationError('올바르지 않은 사업자등록번호입니다.')
 
-        self.registration_no = reg_no
-        return self.registration_no
+    #     self.registration_no = reg_no
+    #     return self.registration_no
     
 
 class TemporaryCodeForm(forms.Form):
@@ -62,3 +62,91 @@ class TemporaryCodeForm(forms.Form):
                             widget=forms.TextInput(attrs={'readonly': True}),
                             validators=[validate_mobile_phone])
 
+class UploadApplicationForm(forms.Form):
+    registration_no = forms.CharField(label="사업자등록번호",
+                                      max_length=10,
+                                      widget=forms.TextInput(attrs={'oninput': NUMBER_ONLY}))
+    
+    phone = forms.CharField(label="대표자 핸드폰 번호",
+                            max_length=200,
+                            widget=forms.TextInput(attrs={'oninput': NUMBER_ONLY}),
+                            validators=[validate_mobile_phone])    
+    
+    business_name = forms.CharField(label="가맹점 이름",
+                                      max_length=160)
+
+    representative  = forms.CharField(label="대표자 이름",
+                                      max_length=200)
+
+    email  = forms.CharField(label="이메일 주소",
+                                      max_length=200)
+    
+    input_file = forms.FileField(label="사업자등록증:") 
+
+    password = forms.CharField(label="비밀번호",
+                                      max_length=200, widget=forms.PasswordInput(render_value=True))
+
+    password_check = forms.CharField(label="비밀번호 확인",
+                                      max_length=200, widget=forms.PasswordInput(render_value=True))
+
+class ModifyApplicationForm(forms.Form):
+    registration_no = forms.CharField(label="사업자등록번호",
+                                      max_length=10,
+                                      widget=forms.TextInput(attrs={'oninput': NUMBER_ONLY, 'readonly': 'readonly', 'style': 'color: gray;'}))
+    
+    phone = forms.CharField(label="대표자 핸드폰 번호",
+                            max_length=200,
+                            widget=forms.TextInput(attrs={'oninput': NUMBER_ONLY, 'readonly': 'readonly', 'style': 'color: gray;'}),
+                            validators=[validate_mobile_phone])    
+    
+    business_name = forms.CharField(label="가맹점 이름",
+                                      max_length=160)
+
+    representative  = forms.CharField(label="대표자 이름",
+                                      max_length=200)
+
+    email  = forms.CharField(label="이메일 주소",
+                                      max_length=200)
+    
+    input_file = forms.FileField(label="사업자등록증:") 
+     
+class LoginApplicationForm(forms.Form):
+    registration_no = forms.CharField(label="사업자등록번호",
+                                      max_length=10,
+                                      widget=forms.TextInput(attrs={'oninput': NUMBER_ONLY}))
+    
+    phone = forms.CharField(label="대표자 핸드폰 번호",
+                            max_length=200,
+                            widget=forms.TextInput(attrs={'oninput': NUMBER_ONLY}),
+                            validators=[validate_mobile_phone])
+    
+    password = forms.CharField(label="비밀번호",
+                                      max_length=200, widget=forms.PasswordInput(render_value=True))        
+
+SMS_EMAIL_CHOICES = [
+    ('sms', 'SMS'),
+    ('email', '이메일'),
+]
+
+class FindpwApplicationForm(forms.Form):
+    registration_no = forms.CharField(label="사업자등록번호",
+                                      max_length=10,
+                                      widget=forms.TextInput(attrs={'oninput': NUMBER_ONLY}))
+    
+    phone = forms.CharField(label="대표자 핸드폰 번호",
+                            max_length=200,
+                            widget=forms.TextInput(attrs={'oninput': NUMBER_ONLY}),
+                            validators=[validate_mobile_phone])
+
+    notification_method = forms.ChoiceField(
+        label="알림 수단",
+        choices=SMS_EMAIL_CHOICES,
+        widget=forms.RadioSelect
+    ) 
+    
+class ChangepwApplicationForm(forms.Form):
+    password = forms.CharField(label="비밀번호",
+                                      max_length=200, widget=forms.PasswordInput(render_value=True))
+
+    password_check = forms.CharField(label="비밀번호 확인",
+                                      max_length=200, widget=forms.PasswordInput(render_value=True))

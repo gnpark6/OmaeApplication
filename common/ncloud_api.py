@@ -50,9 +50,10 @@ class BaseAuthInfo:
     def apigw_signature_v2(self, timestamp: int, uri: str):
         inputs = [ 'POST', ' ', uri, '\n' ]
         #inputs.append(str(timestamp))
-        inputs.append(f"{timestamp}")
+        inputs.append(f"{timestamp}")       
         inputs.append('\n')
         inputs.append(self.access_key)
+        
         message = ''.join(inputs)
 
         hm = hmac.new(self.secret_key.encode('utf-8'), message.encode('utf-8'), digestmod=hashlib.sha256)
@@ -65,18 +66,18 @@ class MailSender(BaseAuthInfo):
     def __init__(self, api_key, access_key, secret_key) -> None:
         super().__init__(api_key, access_key, secret_key)
 
-
-    def request_sending(self, sender: str, title: str, body: str,
-                        recipients: list, individual: bool, advertising: bool):
+    # def request_sending(self, sender: str, title: str, body: str,
+    #                     recipients: list, individual: bool, advertising: bool):
+    def request_sending(self):
         try:
-            '''
+            
             mail_info = {
                 "senderAddress": "omae@justpayments.co.kr",
                 "title": "${customer_name}님 반갑습니다. ",
                 "body": "귀하의 매장 '${store_name}'의 ${sale_date} 팩토링 준비가 완료되었습니다.",
                 "recipients": [
                     {
-                        "address": "mhshin71@gmail.com",
+                        "address": "gnpark@justpayments.co.kr",
                         "name": "신길동",
                         "type": "R",
                         "parameters": {
@@ -89,16 +90,15 @@ class MailSender(BaseAuthInfo):
                 "individual": True,
                 "advertising": False
             }
-            '''
 
-            mail_info = {
-                "senderAddress": sender,
-                "title": title,
-                "body": body,
-                "recipients": recipients,
-                "individual": individual,
-                "advertising": advertising
-            }
+            # mail_info = {
+            #     "senderAddress": sender,
+            #     "title": title,
+            #     "body": body,
+            #     "recipients": recipients,
+            #     "individual": individual,
+            #     "advertising": advertising
+            # }
 
             timestamp = int(time.time() * 1000)
             apigw_signature = self.apigw_signature_v2(timestamp, self.mail_ep_uri)

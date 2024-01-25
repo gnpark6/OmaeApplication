@@ -1,0 +1,39 @@
+신청서 수정
+{% for message in messages %}
+<div>{{ message }}</div>
+{% endfor %}
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li>
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <b>ERROR: {{ message }}</b>
+        {% else %}
+            {{message}}
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% comment %} 
+<div>
+    <form action="{{form_action}}" method="post">
+        {% csrf_token %}
+        <table>
+        {{ form.as_table }}
+        </table>
+        <input type="submit" value="Submit">
+    </form>
+</div> {% endcomment %}
+
+<div>
+    <form action="{{form_action}}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <table>
+        {{ form.as_table }}
+        </table>
+        <button type="submit">Upload</button>
+    </form>
+</div>
+

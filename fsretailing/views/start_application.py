@@ -1,6 +1,7 @@
 import jwt
 import logging
 import pytz
+from library.jwt_token import *
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib import messages
@@ -12,14 +13,18 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from random import randint
-from ..models.application import TemporaryCode
+from ..models.application import TemporaryCode, ApplicationDoc
 from ..models.application_form import StartApplicationForm
 from ..models.application_form import TemporaryCodeForm
 from common.ncloud_api import SMSSender
+from library.jwt_token import *
+from library.def_common import *
 
 
 logger = logging.getLogger(__name__)
 
+class CompareError(Exception):
+    pass
 
 class StartApplicationView(View):
 
@@ -47,8 +52,12 @@ class StartApplicationView(View):
                 phone = form.cleaned_data['phone']
 
                 # 작성/검토 중인 사업자이면 로그인으로 이동
-                if self.processing() == True:
-                    return redirect('retailing/')
+                user_key = request.session.get(f'user_key_{registration_no}', None)
+                if user_key is not None:
+                    if self.processing(request, user_key, registration_no, representative, phone) == True:
+                            return redirect('/retailing/application/login/')
+                    else:
+                        raise CompareError
                 
                 # 인증코드 DB 저장
                 code = self.save_tempcode(phone)
@@ -64,14 +73,31 @@ class StartApplicationView(View):
                         'counter_start': True,
                         'duration_sec': self.duration_sec - 10
                     }
-                    response = render(request, self.template, context)
-
-                    token = TemporaryToken.get_token(registration_no, representative)
+                    # response = render(request, self.template, context)
+                    response = render(request, 'stub/upload.html', context)
+                    
+                    payload = {
+                        "registration_no": registration_no,
+                        "representative" : representative,
+                        "phone": phone,
+                    }
+                    
+                    token = JwtToken.generate_token(payload=payload)
                     response.set_cookie("om_tempcode", token)
+                    print(f"token:{token}")
+                    
+                    data = JwtToken.parse_token(token=token)
+                    print(f"data : {data}")
+                    
+                    # token = TemporaryToken.get_token(registration_no, representative)
+                    # response.set_cookie("om_tempcode", token)
                     return response
 
                 else:
                     messages.error(request, "SMS전송 에러")
+                    
+        except CompareError:
+            messages.error(request, "가입하신 사업자 번호가 있지만, 그 외 정보가 상이합니다.")
         except:
             messages.error(request, "잠시 후 다시 시도해 주세요.\n불편을 끼쳐드려 죄송합니다.")
 
@@ -81,9 +107,22 @@ class StartApplicationView(View):
         return render(request, self.template, context)
     
 
-    def processing(self):
+    def processing(self, request, user_key: str, registration_no: str, representative: str, phone: str):
+        queryset = ApplicationDoc.objects.filter(registration_no=registration_no)
+        if queryset:
+            for item in queryset:
+                decrypted_representative = decrypt_data(item.representative.encode('utf-8'), user_key)
+                decrypted_phone = decrypt_data(item.phone.encode('utf-8'), user_key)
+                if decrypted_representative != representative or decrypted_phone != phone:
+                    return False
+                else:
+                    return True
+              
+        else:
+            request.session.pop(f'user_key_{registration_no}', None)
+            return False
+        
         return False
-
 
     def save_tempcode(self, phone: str):
         nums = []
@@ -134,8 +173,8 @@ def require_temp_token():
     
     return _method_wrapper
 
-
-@method_decorator(require_temp_token(), 'post')
+@method_decorator(auth_check_jwt, 'post')
+# @method_decorator(require_temp_token(), 'post')
 class TempCodeApplicationView(View):
     def http_method_not_allowed(self, request, *args, **kwargs):
         messages.error(request, "잘못된 접근!")
@@ -155,18 +194,22 @@ class TempCodeApplicationView(View):
             if form.is_valid():
                 registration_no = tempcode['registration_no']
                 representative = tempcode['representative']
-
+            
+                print("temp views")
+                print(registration_no, representative)
                 code = form.cleaned_data['code']
                 phone = form.cleaned_data['phone']
-
 
                 retcode, remain_sec = self.verify_code(phone, code)
 
                 if retcode == True:
-                    context = {
-                        'result': f"'{registration_no}' '{representative}'",
-                    }
-                    return render(request, 'stub/result.html', context)
+                    # context = {
+                    #     'result': f"'{registration_no}' '{representative}'",
+                    # }
+                    # return render(request, 'stub/upload.html', context)
+                    request.session['registration_no'] = registration_no
+                    request.session['representative'] = representative
+                    return redirect('upload-application')
 
                 if remain_sec > 0:
                     messages.error(request, "인증코드가 잘못되었습니다.\n다시 시도해 주세요.")

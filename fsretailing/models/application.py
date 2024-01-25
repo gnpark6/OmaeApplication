@@ -5,6 +5,7 @@ class Attachments(models.Model):
     fileno = models.BigAutoField(primary_key=True)
     filename = models.CharField(max_length=256)
     filedata = models.BinaryField()
+    extension = models.CharField(max_length=16)
 
     class Meta:
         managed = False

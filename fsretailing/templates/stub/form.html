@@ -32,7 +32,8 @@
 {% else %}
 신청서를 작성하시겠습니까? <br/>
 - 입력하신 대표자 전화번호로 인증코드를 전송합니다.<br/>
-- 이미 신청하신 경우 로그인페이지로 이동합니다.
+- 이미 신청하신 경우 <a href="http://127.0.0.1:8000/retailing/application/login/" target="_">로그인</a> 해주세요.<br/>
+- <a href="http://127.0.0.1:8000/retailing/application/findpw/" target="_">비밀번호 찾기</a> 
 {% endif %}
 
 {% for message in messages %}
@@ -62,3 +63,4 @@
         <input type="submit" value="Submit">
     </form>
 </div>
+

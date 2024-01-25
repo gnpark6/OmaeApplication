@@ -130,10 +130,11 @@ STATIC_ROOT = '/var/www/omae/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # Load custom django parameters
 
-secret_file = BASE_DIR / 'db.sqlite3'
+secret_file = BASE_DIR / 'omaeapplication.db'
 con = sqlite3.connect(secret_file)
 cursor = con.cursor()
 cursor.execute("SELECT name, value FROM django_params")
@@ -143,7 +144,7 @@ for row in cursor:
 
 
 # Load custom database parameters
-DATABASES = {}
+DATABASES = {} 
 
 default_db = {
     "ENGINE": params['DATABASES_default_ENGINE'],
@@ -201,6 +202,10 @@ LOGGING = {
             'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
         },
+        # "console": {
+        #     "level": "DEBUG",
+        #     "class": "logging.StreamHandler",
+        # },
         'django.server': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
@@ -236,5 +241,9 @@ LOGGING = {
             'handlers': ['console', 'file'],
             'level': 'INFO',
         },
+        # "django.db.backends": {
+        #     "handlers": ["console"],
+        #     "level": "DEBUG",
+        # },
     }
 }
