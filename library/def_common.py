@@ -39,8 +39,7 @@ def decrypt_data(encrypted_data, key):
         return decrypted_data
     except InvalidToken as e:
         print(f"InvalidToken Exception: {e}")
-        # 예외 처리 방법에 따라 적절한 조치를 취할 수 있습니다.
-        return None  # 또는 다른 예외 처리 로직 추가
+        return None  
     
 def hash_password(password):
     # 비밀번호를 해시화하여 반환

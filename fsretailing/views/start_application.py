@@ -15,7 +15,7 @@ from django.views import View
 from random import randint
 from ..models.application import TemporaryCode, ApplicationDoc
 from ..models.application_form import StartApplicationForm
-from ..models.application_form import TemporaryCodeForm
+from ..models.application_form import TemporaryCodeForm, UploadApplicationForm
 from common.ncloud_api import SMSSender
 from library.jwt_token import *
 from library.def_common import *
@@ -53,6 +53,7 @@ class StartApplicationView(View):
 
                 # 작성/검토 중인 사업자이면 로그인으로 이동
                 user_key = request.session.get(f'user_key_{registration_no}', None)
+                print(f"user_key:{user_key}")
                 if user_key is not None:
                     if self.processing(request, user_key, registration_no, representative, phone) == True:
                             return redirect('/retailing/application/login/')
@@ -73,7 +74,7 @@ class StartApplicationView(View):
                         'counter_start': True,
                         'duration_sec': self.duration_sec - 10
                     }
-                    # response = render(request, self.template, context)
+                    
                     response = render(request, 'stub/upload.html', context)
                     
                     payload = {
@@ -82,15 +83,12 @@ class StartApplicationView(View):
                         "phone": phone,
                     }
                     
-                    token = JwtToken.generate_token(payload=payload)
-                    response.set_cookie("om_tempcode", token)
-                    print(f"token:{token}")
+                    # token = JwtToken.generate_token(payload=payload)
+                    # response.set_cookie("OMAETOKEN", token)
+                    # print(f"token:{token}")
                     
-                    data = JwtToken.parse_token(token=token)
-                    print(f"data : {data}")
-                    
-                    # token = TemporaryToken.get_token(registration_no, representative)
-                    # response.set_cookie("om_tempcode", token)
+                    token = TemporaryToken.get_token(registration_no, representative)
+                    response.set_cookie("OMAETOKEN", token)
                     return response
 
                 else:
@@ -154,7 +152,7 @@ class StartApplicationView(View):
 def require_temp_token():
     def _method_wrapper(function):
         def _arguments_wrapper(request, *args, **kwargs):
-            temp_token = TemporaryToken.get_tempcode(request, "om_tempcode")
+            temp_token = TemporaryToken.get_tempcode(request, "OMAETOKEN")
             if temp_token == None:
                 messages.error(request, "잘못된 접근!")
                 res = HttpResponseRedirect(reverse('start-application'))
@@ -173,8 +171,8 @@ def require_temp_token():
     
     return _method_wrapper
 
-@method_decorator(auth_check_jwt, 'post')
-# @method_decorator(require_temp_token(), 'post')
+# @method_decorator(auth_check_jwt, 'post')
+@method_decorator(require_temp_token(), 'post')
 class TempCodeApplicationView(View):
     def http_method_not_allowed(self, request, *args, **kwargs):
         messages.error(request, "잘못된 접근!")
@@ -194,7 +192,7 @@ class TempCodeApplicationView(View):
             if form.is_valid():
                 registration_no = tempcode['registration_no']
                 representative = tempcode['representative']
-            
+                
                 print("temp views")
                 print(registration_no, representative)
                 code = form.cleaned_data['code']
@@ -203,12 +201,14 @@ class TempCodeApplicationView(View):
                 retcode, remain_sec = self.verify_code(phone, code)
 
                 if retcode == True:
+                    # upload_form = UploadApplicationForm()                
                     # context = {
+                    #     'form': upload_form,
+                    #     'form_action': reverse('upload-application'),
                     #     'result': f"'{registration_no}' '{representative}'",
                     # }
                     # return render(request, 'stub/upload.html', context)
-                    request.session['registration_no'] = registration_no
-                    request.session['representative'] = representative
+                    request.session['result'] = f"'{registration_no}' '{representative}'"
                     return redirect('upload-application')
 
                 if remain_sec > 0:

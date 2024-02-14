@@ -28,18 +28,17 @@ class ExtensionError(Exception):
 class CompareError(Exception):
     pass
 
+@method_decorator(auth_check_jwt, 'get')
+@method_decorator(auth_check_jwt, 'post')
 class UploadApplicationView(View):
     template = "stub/upload.html"
     
     def get(self, request):
         form = UploadApplicationForm()
-        # result = request.session.get('result', None)
-        # print(result, type(result))
         
         try:
-            registration_no = request.session.get('registration_no', '')
-            representative = request.session.get('representative', '')
-            print(f"result : {registration_no} {representative}")
+            registration_no = request.session.get('result', '').split()[0][1:-1]
+            representative = request.session.get('result', '').split()[1][1:-1]
             
             form = UploadApplicationForm(initial={
                 'registration_no': registration_no,
@@ -54,11 +53,6 @@ class UploadApplicationView(View):
                 
         except Exception:
             return HttpResponse("잠시 후 다시 시도해 주세요.\n불편을 끼쳐드려 죄송합니다.")
-        # context = {
-        #     'form': form,
-        #     'form_action': reverse('upload-application')
-        # }
-        # return render(request, self.template, context)
     
     def post(self, request):
         form = UploadApplicationForm(request.POST, request.FILES)
@@ -77,12 +71,7 @@ class UploadApplicationView(View):
                     raise CompareError
     
                 input_file = request.FILES['input_file']
-                
-                # print(f"File Extension: {self.get_file_extension(input_file.name)}")
-                
-                # if not self.is_allowed_extension(input_file.name):
-                #     raise VaildationError
-                
+                                
                 extension=self.get_file_extension(input_file.name)
                 
                 if not extension in ALLOWED_EXTENSIONS:

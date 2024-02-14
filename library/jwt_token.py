@@ -2,6 +2,7 @@ import jwt, base64, string, hashlib
 from django.conf import settings
 from rest_framework import status
 from django.contrib import messages
+from django.http import HttpResponse
 
 class JwtToken(object):
     _salt = settings.JWT_SECRET_KEY
@@ -33,20 +34,21 @@ class JwtToken(object):
 
 def auth_check_jwt(function):
     def wrap(request, *args, **kwargs):
-        token = request.COOKIES.get('om_tempcode', '')
-        print(f"token: {token}")
+        token = request.COOKIES.get('OMAETOKEN', '')
+
         if token != None and token != '':
             ret, payload = JwtToken.parse_token(token)
-            print(ret, payload)
-            print(payload['registration_no'])
+
             if ret != True:
-                messages.error(f"Invalid JWT Token{payload}")
+                messages.error(request, "Invalid JWT Token")
+                return HttpResponse(status=401)
                 
-            request.user.tempcode = {
-                "registration_no": payload['registration_no'],
-                "representative": payload['representative']
-            }
+            # request.user.tempcode = {
+            #     "registration_no": payload['registration_no'],
+            #     "representative": payload['representative']
+            # }
             return function(request, *args, **kwargs)
         else:
-            messages.error(f"Invalid JWT Token")
+            messages.error(request, "Invalid JWT Token")
+            return HttpResponse(status=401)
     return wrap

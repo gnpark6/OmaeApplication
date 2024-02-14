@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 class ExtensionError(Exception):
     pass
 
+@method_decorator(auth_check_jwt, 'get')
+@method_decorator(auth_check_jwt, 'post')
 class ModifyApplicationView(View):
     
     template = "stub/modify.html"
@@ -88,14 +90,9 @@ class ModifyApplicationView(View):
                 
                 filedata = input_file.read()   
             
-            print(f"{representative}, {email}")
             user_key = request.session.get(f'user_key_{registration_no}', None)     
             encrypted_representative = encrypt_data(representative, user_key)
             encrypted_email = encrypt_data(email, user_key)        
-            
-            print("")
-            print("")
-            print("")
                        
             # queryset = Attachments.objects.filter(filename=registration_no)
              

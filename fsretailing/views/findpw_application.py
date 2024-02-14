@@ -77,7 +77,6 @@ class FindpwApplicationView(View):
             return render(request, self.template)
         
         
-        
     def send_link_sms(self, phone: str):
         content = f'[오매] 비밀번호를 변경 링크 \n'
         recipients = {

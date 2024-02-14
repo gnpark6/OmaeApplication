@@ -29,6 +29,7 @@ class PhonenumberError(Exception):
 class PasswordError(Exception):
     pass
 
+
 class LoginApplicationView(View):
     
     template = "stub/login.html"
@@ -39,6 +40,7 @@ class LoginApplicationView(View):
             'form': form,
             'form_action': reverse('login-application')
         }
+        
         return render(request, self.template, context)
     
     def post(self, request):
@@ -48,7 +50,9 @@ class LoginApplicationView(View):
                 registration_no = form.cleaned_data['registration_no']
                 phone = form.cleaned_data['phone']
                 password = form.cleaned_data['password']
-                        
+            
+                 
+            
             queryset = ApplicationDoc.objects.select_related('fileno').filter(registration_no=registration_no)
                     
             if queryset:
@@ -103,13 +107,26 @@ class LoginApplicationView(View):
                 return render(request, 'stub/result.html', context)
 
             else:
+                # 토큰 생성 
+                payload = {
+                    "registration_no": registration_no,
+                    "representative" : decrypted_representative,
+                }
+                
+                response = redirect('modify-application')
+                
+                token = JwtToken.generate_token(payload=payload)
+                response.set_cookie("OMAETOKEN", token)
+                print(f"token:{token}") 
+                
                 request.session['registration_no'] = registration_no
                 request.session['phone'] = decrypted_phone
                 request.session['business_name'] = business_name
                 request.session['representative'] = decrypted_representative
                 request.session['email'] = decrypted_email
                 # return redirect('modify-application', session_key=request.session.session_key)
-                return redirect('modify-application')
+                # return redirect('modify-application')
+                return response
             
         except NotexistError:
             messages.error(request, f"가입한 사업자가 없습니다.")

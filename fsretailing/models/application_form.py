@@ -65,7 +65,7 @@ class TemporaryCodeForm(forms.Form):
 class UploadApplicationForm(forms.Form):
     registration_no = forms.CharField(label="사업자등록번호",
                                       max_length=10,
-                                      widget=forms.TextInput(attrs={'oninput': NUMBER_ONLY}))
+                                      widget=forms.TextInput(attrs={'oninput': NUMBER_ONLY, 'readonly': True, 'style': 'color: gray;'}))
     
     phone = forms.CharField(label="대표자 핸드폰 번호",
                             max_length=200,
@@ -76,7 +76,7 @@ class UploadApplicationForm(forms.Form):
                                       max_length=160)
 
     representative  = forms.CharField(label="대표자 이름",
-                                      max_length=200)
+                                      max_length=200, widget=forms.TextInput(attrs={'readonly': True, 'style': 'color: gray;'}))
 
     email  = forms.CharField(label="이메일 주소",
                                       max_length=200)
